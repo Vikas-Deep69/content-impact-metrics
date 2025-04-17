@@ -1,9 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { modelMetrics } from "@/utils/dummyData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
+import { modelMetrics } from "@/utils/dummyData";
+import { CustomProgressBar } from "./CustomProgressBar";
+import { safeNumberFormat } from "@/utils/formatUtils";
 
 const ModelMetrics = () => {
   // Prepare bar chart data
@@ -28,7 +29,7 @@ const ModelMetrics = () => {
                 <span>Accuracy</span>
                 <span className="font-medium">{modelMetrics.influencerAccuracy}%</span>
               </div>
-              <Progress value={modelMetrics.influencerAccuracy} className="h-2" indicatorClassName="bg-blue-600" />
+              <CustomProgressBar value={modelMetrics.influencerAccuracy} className="h-2" indicatorClassName="bg-blue-600" />
               <p className="text-xs text-muted-foreground mt-2">
                 Classification performance on test data
               </p>
@@ -46,7 +47,7 @@ const ModelMetrics = () => {
                 <span>R² Score</span>
                 <span className="font-medium">{modelMetrics.contentR2Score}</span>
               </div>
-              <Progress value={modelMetrics.contentR2Score * 100} className="h-2" indicatorClassName="bg-teal-600" />
+              <CustomProgressBar value={modelMetrics.contentR2Score * 100} className="h-2" indicatorClassName="bg-teal-600" />
               <p className="text-xs text-muted-foreground mt-2">
                 Regression performance on test data
               </p>
@@ -64,7 +65,7 @@ const ModelMetrics = () => {
                 <span>Accuracy</span>
                 <span className="font-medium">{modelMetrics.sentimentAccuracy}%</span>
               </div>
-              <Progress value={modelMetrics.sentimentAccuracy} className="h-2" indicatorClassName="bg-green-600" />
+              <CustomProgressBar value={modelMetrics.sentimentAccuracy} className="h-2" indicatorClassName="bg-green-600" />
               <p className="text-xs text-muted-foreground mt-2">
                 Classification performance on test data
               </p>
@@ -95,7 +96,7 @@ const ModelMetrics = () => {
               <Tooltip 
                 formatter={(value, name, props) => {
                   const item = metricsData[props.payload.index];
-                  return [`${value.toFixed(1)}%`, item.label];
+                  return [`${safeNumberFormat(value, 1)}%`, item.label];
                 }}
               />
               <Bar dataKey="value">
