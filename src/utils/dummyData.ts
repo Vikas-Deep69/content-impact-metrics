@@ -1,5 +1,8 @@
-
 // Simulated data since we can't run the actual Python models in JavaScript
+// Real data URLs for reference:
+// - Content Data: https://biumlunxzojlrivmfkyz.supabase.co/storage/v1/object/sign/socialmedia/content_data.csv
+// - Influencer Data: https://biumlunxzojlrivmfkyz.supabase.co/storage/v1/object/sign/socialmedia/influencer_data.csv
+// - Sentiment Data: https://biumlunxzojlrivmfkyz.supabase.co/storage/v1/object/sign/socialmedia/sentiment_data.csv
 
 // Influencer Impact Data
 export const generateInfluencerData = (n = 200) => {

@@ -7,6 +7,8 @@ import SentimentSection from "@/components/Dashboard/SentimentSection";
 import ModelMetrics from "@/components/Dashboard/ModelMetrics";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 const Index = () => {
   return (
@@ -15,6 +17,14 @@ const Index = () => {
         title="Content Impact Metrics Dashboard" 
         description="Analyze and predict content performance, influencer impact, and audience sentiment"
       />
+      
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Dataset Information</AlertTitle>
+        <AlertDescription>
+          This dashboard uses machine learning models trained on real datasets. You can download the CSV files using the buttons above.
+        </AlertDescription>
+      </Alert>
       
       <Card className="p-6 mb-8">
         <Tabs defaultValue="overview" className="w-full">
