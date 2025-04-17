@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell, Rectangle, HeatMapProps } from "recharts";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { AlertCircle, TrendingUp, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generateInfluencerData, predictInfluencerImpact } from "@/utils/dummyData";
 import MetricCard from "./MetricCard";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const InfluencerSection = () => {
   const [followers, setFollowers] = useState<string>("50000");
@@ -31,12 +32,20 @@ const InfluencerSection = () => {
     { name: 'High Sales', yes: influencerData.filter(d => d.highSales === 1).length, no: influencerData.filter(d => d.highSales === 0).length },
   ];
 
-  // Process data for correlation chart
+  // Process data for correlation chart - matching correlation heatmap from the reference
   const correlationData = [
-    { name: 'Followers', value: 0.62 },
-    { name: 'Engagement', value: 0.83 },
-    { name: 'Niche', value: 0.41 },
+    { name: 'followers', followers: 1.0, engagementRate: 0.21, nicheScore: 0.15, contentQuality: 0.18, highSales: 0.62 },
+    { name: 'engagementRate', followers: 0.21, engagementRate: 1.0, nicheScore: 0.08, contentQuality: 0.12, highSales: 0.83 },
+    { name: 'nicheScore', followers: 0.15, engagementRate: 0.08, nicheScore: 1.0, contentQuality: 0.05, highSales: 0.41 },
+    { name: 'contentQuality', followers: 0.18, engagementRate: 0.12, contentQuality: 0.05, nicheScore: 1.0, highSales: 0.75 },
+    { name: 'highSales', followers: 0.62, engagementRate: 0.83, nicheScore: 0.41, contentQuality: 0.75, highSales: 1.0 },
+  ];
+
+  const featureImportanceData = [
+    { name: 'Engagement Rate', value: 0.83 },
     { name: 'Content Quality', value: 0.75 },
+    { name: 'Followers', value: 0.62 },
+    { name: 'Niche Score', value: 0.41 },
   ];
 
   const handlePredict = () => {
@@ -59,6 +68,20 @@ const InfluencerSection = () => {
       setPredictionResult("Error in prediction. Check your inputs.");
       setPredictionColor("bg-red-100 border-red-300 text-red-800");
     }
+  };
+
+  // Function to generate color based on correlation value
+  const getCorrelationColor = (value: number) => {
+    // Blues color palette similar to reference image
+    if (value >= 0.9) return "#08306b";
+    if (value >= 0.7) return "#08519c";
+    if (value >= 0.5) return "#2171b5";
+    if (value >= 0.3) return "#4292c6";
+    if (value >= 0.1) return "#6baed6";
+    if (value >= -0.1) return "#9ecae1";
+    if (value >= -0.3) return "#c6dbef";
+    if (value >= -0.5) return "#deebf7";
+    return "#f7fbff";
   };
 
   return (
@@ -88,22 +111,43 @@ const InfluencerSection = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Correlation Chart */}
+        {/* Correlation Heatmap - Based on reference image */}
         <Card>
           <CardHeader>
-            <CardTitle>Feature Importance</CardTitle>
+            <CardTitle>Influencer Features Correlation Heatmap</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2">
             <div className="chart-container">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={correlationData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 1]} />
-                  <YAxis dataKey="name" type="category" />
-                  <Tooltip formatter={(value) => [`${(Number(value) * 100).toFixed(0)}%`, 'Importance']} />
-                  <Bar dataKey="value" fill="#0088cc" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="flex flex-col items-center">
+                <div className="grid grid-cols-6 gap-1">
+                  <div className="text-xs"></div>
+                  {correlationData.map((row, idx) => (
+                    <div key={idx} className="text-xs font-semibold transform -rotate-45 origin-left translate-y-3">
+                      {row.name}
+                    </div>
+                  ))}
+                  
+                  {correlationData.map((row, rowIdx) => (
+                    <>
+                      <div key={`row-${rowIdx}`} className="text-xs font-semibold">
+                        {row.name}
+                      </div>
+                      {Object.entries(row)
+                        .filter(([key]) => key !== 'name')
+                        .map(([key, value], colIdx) => (
+                          <div 
+                            key={`cell-${rowIdx}-${colIdx}`} 
+                            className="w-10 h-10 flex items-center justify-center text-xs font-semibold"
+                            style={{ backgroundColor: getCorrelationColor(value as number) }}
+                          >
+                            {(value as number).toFixed(2)}
+                          </div>
+                        ))
+                      }
+                    </>
+                  ))}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -178,6 +222,41 @@ const InfluencerSection = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Feature Importance Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Feature Importance for Sales Impact</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer 
+            config={{
+              value: { color: "#2171b5" }
+            }}
+            className="chart-container"
+          >
+            <BarChart 
+              data={featureImportanceData} 
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" domain={[0, 1]} tickCount={6} />
+              <YAxis dataKey="name" type="category" width={90} />
+              <Tooltip 
+                formatter={(value) => [`${(Number(value) * 100).toFixed(0)}%`, 'Importance']}
+                cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+              />
+              <Bar 
+                dataKey="value" 
+                fill="#2171b5" 
+                background={{ fill: '#eee' }}
+                radius={[0, 4, 4, 0]}
+              />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
       
       <Separator />
     </div>

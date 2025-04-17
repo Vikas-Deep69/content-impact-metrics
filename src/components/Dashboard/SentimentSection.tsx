@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { MessageSquareText, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { generateSentimentData, predictSentiment } from "@/utils/dummyData";
 import MetricCard from "./MetricCard";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const SentimentSection = () => {
   const [text, setText] = useState<string>("");
@@ -22,13 +23,19 @@ const SentimentSection = () => {
   const negativeCount = sentimentData.filter(item => item.sentiment === 0).length;
   const positivePercentage = Math.round((positiveCount / sentimentData.length) * 100);
   
+  // Bar chart data - to match reference image
+  const barData = [
+    { name: "Negative (0)", value: negativeCount },
+    { name: "Positive (1)", value: positiveCount },
+  ];
+  
   // Pie chart data
   const pieData = [
     { name: "Positive", value: positiveCount },
     { name: "Negative", value: negativeCount },
   ];
   
-  const COLORS = ["#00C49F", "#FF8042"];
+  const COLORS = ["#4CAF50", "#FF5722"];
 
   // Commonly found words
   const commonPositive = ["great", "amazing", "excellent", "fantastic", "loved"];
@@ -84,34 +91,41 @@ const SentimentSection = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Sentiment Distribution */}
+        {/* Sentiment Bar Chart - Updated to match reference image */}
         <Card>
           <CardHeader>
-            <CardTitle>Sentiment Distribution</CardTitle>
+            <CardTitle>Sentiment Label Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="chart-container">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => [value, "Count"]} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartContainer 
+              config={{
+                value: { color: "#4353ff" }
+              }}
+              className="chart-container"
+            >
+              <BarChart
+                data={barData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  label={{ value: 'Sentiment', position: 'insideBottom', offset: -10 }} 
+                />
+                <YAxis 
+                  label={{ value: 'Count', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip formatter={(value) => [value, "Count"]} />
+                <Bar 
+                  dataKey="value" 
+                  name="Count"
+                >
+                  {barData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -140,6 +154,37 @@ const SentimentSection = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Sentiment Distribution Pie Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Sentiment Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={true}
+                  outerRadius={120}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [value, "Count"]} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Common Terms */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
